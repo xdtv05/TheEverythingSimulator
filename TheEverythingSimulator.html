@@ -10,10 +10,10 @@
 		}
 		function addWorker(kind)
 		{
-			if (document.avail_workers > 0)
+			if (document.amounts["freeWorkers"] > 0)
 			{
 				document.workers[kind] += 1;
-				document.avail_workers -= 1;
+				document.amounts["freeWorkers"] -= 1;
 			}
 		}
 		function subWorker(kind)
@@ -21,7 +21,7 @@
 			if (document.workers[kind] > 0)
 			{
 				document.workers[kind] -= 1;
-				document.avail_workers += 1;
+				document.amounts["freeWorkers"] += 1;
 			}
 		}
 		function showMaterials()
@@ -78,7 +78,7 @@
 				updateItem(kind);
 			}
 			var label = document.getElementById("workers");
-			label.innerHTML = document.avail_workers;
+			label.innerHTML = document.amounts["freeWorkers"];
 		}
 		function updateItem(kind)
 		{
@@ -119,6 +119,11 @@
 				"knowledgeC": 70,
 			}
 		};
+		document.rewards = {
+			"inns": {
+				"freeWorkers": 1
+			}
+		}
 		function craft(compound)
 		{
 			var pass = true;
@@ -145,7 +150,15 @@
 					var amt = reqs[kind];
 					document.amounts[kind] -= amt;
 				}
-
+				var rewards = document.rewards[compound];
+				if (rewards !== undefined)
+				{
+					for (kind in rewards)
+					{
+						var amt = rewards[kind];
+						document.amounts[kind] += amt;
+					}
+				}
 			}
 			updateDisplay();
 		}
@@ -153,7 +166,7 @@
 		document.amounts = {};
 		document.workers = {};
 		document.total_workers = 5;
-		document.avail_workers = 1;
+		document.amounts["freeWorkers"] = 1;
 		
 		for (kind of document.materials)
 		{
