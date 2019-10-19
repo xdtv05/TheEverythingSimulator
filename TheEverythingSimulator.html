@@ -46,15 +46,15 @@
 		}
 		function tick()
 		{
-			incrementMaterials(); // increment materials
-			updateDisplay(); // update displays
+			incrementMaterials();
+			updateDisplay();
 		}
 		function incrementMaterials()
 		{
 			for (kind of document.materials)
 			{
 				var amt = document.amounts[kind];
-				var add = document.base_rates[kind];
+				var add = document.total_rates[kind];
 				var workers = document.workers[kind];
 				if (add !== undefined)
 				{
@@ -92,23 +92,19 @@
 				}
 			}
 		}
-		
 		document.materials = [ "money", "stone", "wood", "metal", "gems", "food" ];
-		document.compounds = [ "mugs" , "pickaxes" , "inns" , "barrels" , "knowledgeC" ];
+		document.compounds = [ "mugs" , "pickaxes" , "inns" , "barrels" , "knowledgeC", "mines" ];
 		document.requirements = {
 			"pickaxes": {
 				"metal": 5,
 				"wood": 2,
-				"knowledgeC": -2
 			},
 			"mugs": {
 				"stone": 2,
-				"knowledgeC": -1
 			},
 			"barrels": {
 				"wood": 5,
 				"metal": 1,
-				"knowledgeC": -3
 			},
 			"inns": {
 				"stone": 500,
@@ -117,13 +113,33 @@
 				"barrels": 20,
 				"food": 125,
 				"knowledgeC": 70,
+			},
+			"mines": {
+				"stone": 245,
+				"wood": 125,
+				"pickaxes": 3,
+				"knowledgeC": 7,
 			}
 		};
 		document.rewards = {
 			"inns": {
-				"freeWorkers": 1
-			}
-		}
+				"freeWorkers": 1,
+			},
+			"barrels": {
+				"knowledgeC": 3,
+			},
+			"mugs": {
+				"knowledgeC": 1,
+			},
+			"pickaxes": {
+				"knowledgeC": 2,
+			},
+		};
+		document.bonus_rates = {
+			"mines": {
+				"stone": 1,
+			},
+		};
 		function craft(compound)
 		{
 			var pass = true;
@@ -159,19 +175,34 @@
 						document.amounts[kind] += amt;
 					}
 				}
+				var bonuses = document.bonus_rates[compound];
+				if (bonuses !== undefined)
+				{
+					for (material in bonuses)
+					{
+						var rate_base = document.base_rates[material];
+						var rate_bonus = bonuses[material];
+						var quantity = document.amounts[compound];
+						document.total_rates[material] = rate_base + (quantity * rate_bonus);
+						console.log(material);
+						console.log("new rate for " + material + ": " + document.total_rates[material]);
+					}
+				}
 			}
 			updateDisplay();
 		}
 		document.base_rates = {};
+		document.total_rates = {};
 		document.amounts = {};
 		document.workers = {};
 		document.total_workers = 5;
 		document.amounts["freeWorkers"] = 1;
-		
+
 		for (kind of document.materials)
 		{
 			document.amounts[kind] = 0;
 			document.base_rates[kind] = 0;
+			document.total_rates[kind] = 0;
 			document.workers[kind] = 1;
 		}
 		for (kind of document.compounds)
@@ -183,6 +214,11 @@
 		document.base_rates["wood"] = 5;
 		document.base_rates["stone"] = 2;
 		document.base_rates["metal"] = 1;
+		for (kind of document.materials)
+		{
+			var rate = document.base_rates[kind];
+			document.total_rates[kind] = rate;
+		}
 		//showMaterials();
 		</script>
 		<style>
@@ -237,6 +273,9 @@
 			<div class="compounds" id="knowledgeCBlock">
 				knowledgeC: <span id="knowledgeC"></span>
 			</div>
+			<div class="compounds" id="minesBlock">
+				mines: <span id="mines"></span>
+			</div>
 		</div>
 		<hr>
 		<div id="meterialButtons">
@@ -255,10 +294,11 @@
 		<button onClick="craft('pickaxes');">craft pickaxe</button>
 		<button onClick="craft('inns');">craft inn</button>
 		<button onClick="craft('barrels');">craft barrel</button>
+		<button onClick="craft('mines');">craft mine</button>
 		</div>
 
 		<br>
 		<button onClick="stop();" id="stopButton">STOP!</button>
 	</body>
-	<script>showMaterials();</script>	
+	<script>showMaterials();</script>
 </html>
