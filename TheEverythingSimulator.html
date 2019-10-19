@@ -3,7 +3,8 @@
 	<head>
 		<title>Charlie's Idle Clicker</title>
 		<script>
-		document.ticker = setInterval(tick, 125);
+		var tick_rate = 4;
+		document.ticker = setInterval(tick, 1000/tick_rate);
 		function stop()
 		{
 			clearInterval(document.ticker);
@@ -58,7 +59,7 @@
 				var workers = document.workers[kind];
 				if (add !== undefined)
 				{
-					amt += add * workers;
+					amt += add * workers * (1/tick_rate);
 					document.amounts[kind] = amt;
 				}
 			}
@@ -82,7 +83,7 @@
 		}
 		function updateItem(kind)
 		{
-			var amt = document.amounts[kind];
+			var amt = Math.floor(document.amounts[kind]);
 			if (amt !== undefined)
 			{
 				var label = document.getElementById(kind);
