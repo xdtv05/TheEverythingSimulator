@@ -3,7 +3,7 @@
 	<head>
 		<title>Charlie's Idle Clicker</title>
 		<script>
-		var tick_rate = 4;
+			var tick_rate = 5;
 		document.ticker = setInterval(tick, 1000/tick_rate);
 		function stop()
 		{
@@ -93,8 +93,8 @@
 				}
 			}
 		}
-		document.materials = [ "money", "stone", "wood", "metal", "gems", "food" ];
-		document.compounds = [ "mugs" , "pickaxes" , "inns" , "barrels" , "knowledgeC", "mines" ];
+		document.materials = [ "money", "stone", "wood", "metal", "food" , "gems" ];
+		document.compounds = [ "mugs" , "pickaxes" , "books" , "barrels" , "axes" , "saws" , "knowledgeC" , "inns", "mines" , "libraries" , "lumbermills" ];
 		document.requirements = {
 			"pickaxes": {
 				"metal": 5,
@@ -107,12 +107,24 @@
 				"wood": 5,
 				"metal": 1,
 			},
+			"axes": {
+				"metal": 3,
+				"wood": 2,
+			},
+			"saws": {
+				"metal": 7,
+				"wood": 1,
+			},
+			"books": {
+				"food": 1,
+				"knowledgeC": 1,
+			},
 			"inns": {
 				"stone": 500,
 				"wood": 1000,
 				"mugs": 5,
 				"barrels": 20,
-				"food": 125,
+				"food": 1250,
 				"knowledgeC": 70,
 			},
 			"mines": {
@@ -120,7 +132,17 @@
 				"wood": 125,
 				"pickaxes": 3,
 				"knowledgeC": 7,
-			}
+			},
+			"lumbermills": {
+				"wood": 135,
+				"axes": 2,
+				"saws": 1,
+				"knowledgeC": 7,
+			},
+			"libraries": {
+				"wood": 1000,
+				"books": 120,
+			},
 		};
 		document.rewards = {
 			"inns": {
@@ -135,10 +157,23 @@
 			"pickaxes": {
 				"knowledgeC": 2,
 			},
+			"axes": {
+				"knowledgeC": 2,
+			},
+			"saws": {
+				"knowledgeC": 3,
+			},
+			"libraries": {
+				"knowledgeC": 250,
+			},
 		};
 		document.bonus_rates = {
 			"mines": {
-				"stone": 1,
+				"stone": 2,
+				"metal": 1,
+			},
+			"lumbermills": {
+				"wood": 7,
 			},
 		};
 		function craft(compound)
@@ -210,11 +245,11 @@
 		{
 			document.amounts[kind] = 0;
 		}
-//		document.workers["money"] = 1;
-		document.base_rates["food"] = 10;
-		document.base_rates["wood"] = 5;
-		document.base_rates["stone"] = 2;
-		document.base_rates["metal"] = 1;
+//		document.base_rates["money"] = 1;
+		document.base_rates["food"] = 100;
+		document.base_rates["wood"] = 50;
+		document.base_rates["stone"] = 20;
+		document.base_rates["metal"] = 10;
 		for (kind of document.materials)
 		{
 			var rate = document.base_rates[kind];
@@ -223,10 +258,8 @@
 		//showMaterials();
 		</script>
 		<style>
-			body { font-size: 165%; }
+			body { font-size: 85%; }
 			.materials { background: rgb(240,240,200); }
-			#wood { color: red; }
-			#stone { color: white; }
 		</style>
 	</head>
 	<body>
@@ -248,11 +281,10 @@
 			<div class="materials" id="metalBlock">
 				Metal: <span id="metal"></span>
 			</div>
-			<div class="materials" id="gemsBlock">
-				Gems: <span id="gems"></span>
-			</div>
 			<div class="materials" id="foodBlock">
 				Food: <span id="food"></span>
+				<div class="materials" id="gemsBlock">
+					Gems: <span id="gems"></span>
 			</div>
 			<div class="materials" id="workersBlock">
 				Workers: <span id="workers"></span>
@@ -268,6 +300,12 @@
 			<div class="compounds" id="barrelsBlock">
 				barrels: <span id="barrels"></span>
 			</div>
+			<div class="compounds" id="axesBlock">
+				axes: <span id="axes"></span>
+			</div>
+			<div class="compounds" id="sawsBlock">
+				saws: <span id="saws"></span>
+			</div>
 			<div class="compounds" id="innsBlock">
 				inns: <span id="inns"></span>
 			</div>
@@ -276,6 +314,12 @@
 			</div>
 			<div class="compounds" id="minesBlock">
 				mines: <span id="mines"></span>
+			</div>
+			<div class="compounds" id="lumbermillsBlock">
+				lumbermills: <span id="lumbermills"></span>
+			</div>
+			<div class="compounds" id="librariesBlock">
+				libraries: <span id="libraries"></span>
 			</div>
 		</div>
 		<hr>
@@ -293,9 +337,14 @@
 		<div id="craftButtons">
 		<button onClick="craft('mugs');">craft mug</button>
 		<button onClick="craft('pickaxes');">craft pickaxe</button>
-		<button onClick="craft('inns');">craft inn</button>
 		<button onClick="craft('barrels');">craft barrel</button>
+		<button onClick="craft('axes');">craft axe</button>
+		<button onClick="craft('saws');">craft saw</button>
+		<button onClick="craft('books');">craft book</button>
+		<button onClick="craft('inns');">craft inn</button>
 		<button onClick="craft('mines');">craft mine</button>
+		<button onClick="craft('libraries');">craft library</button>
+		<button onClick="craft('lumbermills');">craft lumbermill</button>
 		</div>
 
 		<br>
