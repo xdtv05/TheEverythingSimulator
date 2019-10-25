@@ -3,26 +3,57 @@
 	<head>
 		<title>Charlie's Idle Clicker</title>
 		<script>
-			var tick_rate = 5;
+		var tick_rate = 5;
+		var many_things = 1;
 		document.ticker = setInterval(tick, 1000/tick_rate);
 		function stop()
 		{
 			clearInterval(document.ticker);
 		}
+		function save()
+		{
+			var state = {};
+			state.amounts = document.amounts;
+			state.workers = document.workers;
+			state.total_workers = document.total_workers;
+			var saveGame = JSON.stringify(state);
+			localStorage.setItem("saveGame", saveGame);
+		}
+		function load()
+		{
+			var saveGame = localStorage.getItem("saveGame");
+			var state = JSON.parse(saveGame);
+			if (state !== null)
+			{
+				document.amounts = state.amounts;
+				document.workers = state.workers;
+				document.total_workers = state.total_workers;
+			}
+		}
 		function addWorker(kind)
 		{
-			if (document.amounts["freeWorkers"] > 0)
+			if (document.amounts["freeWorkers"] >= many_things)
 			{
-				document.workers[kind] += 1;
-				document.amounts["freeWorkers"] -= 1;
+				document.workers[kind] += many_things;
+				document.amounts["freeWorkers"] -= many_things;
 			}
 		}
 		function subWorker(kind)
 		{
-			if (document.workers[kind] > 0)
+			if (document.workers[kind] >= many_things)
 			{
-				document.workers[kind] -= 1;
-				document.amounts["freeWorkers"] += 1;
+				document.workers[kind] -= many_things;
+				document.amounts["freeWorkers"] += many_things;
+			}
+		}
+		function setManyThings()
+		{
+			var input = document.getElementById("manyThings");
+			var num = Number.parseInt(input.value);
+			if (!Number.isNaN(num))
+			{
+				many_things = num;
+				console.log("many things: " + num);
 			}
 		}
 		function showMaterials()
@@ -93,30 +124,35 @@
 				}
 			}
 		}
-		document.materials = [ "money", "stone", "wood", "metal", "food" , "gems" ];
-		document.compounds = [ "mugs" , "pickaxes" , "books" , "barrels" , "axes" , "saws" , "knowledgeC" , "inns", "mines" , "libraries" , "lumbermills" ];
+		document.materials = [ "money", "stone", "wood", "metal", "food" , "leather", "gems" ];
+		document.compounds = [ "mugs" , "pickaxes" , "books" , "barrels" , "axes" , "swords" , "saws" , "knowledgeC" , "inns", "mines" , "libraries" , "lumbermills", "wartents", "foragerhuts" ];
 		document.requirements = {
 			"pickaxes": {
-				"metal": 5,
-				"wood": 2,
+				"metal": 10,
+				"wood": 5,
 			},
 			"mugs": {
-				"stone": 2,
+				"stone": 8,
 			},
 			"barrels": {
-				"wood": 5,
-				"metal": 1,
+				"wood": 20,
+				"metal": 2,
 			},
 			"axes": {
-				"metal": 3,
-				"wood": 2,
+				"metal": 9,
+				"wood": 6,
+			},
+			"swords": {
+				"wood": 3,
+				"leather": 2,
+				"metal": 10,
 			},
 			"saws": {
-				"metal": 7,
-				"wood": 1,
+				"metal": 20,
+				"wood": 5,
 			},
 			"books": {
-				"food": 1,
+				"leather": 2,
 				"knowledgeC": 1,
 			},
 			"inns": {
@@ -124,7 +160,7 @@
 				"wood": 1000,
 				"mugs": 5,
 				"barrels": 20,
-				"food": 1250,
+				"food": 1750,
 				"knowledgeC": 70,
 			},
 			"mines": {
@@ -134,14 +170,27 @@
 				"knowledgeC": 7,
 			},
 			"lumbermills": {
-				"wood": 135,
-				"axes": 2,
-				"saws": 1,
+				"wood": 700,
+				"axes": 10,
+				"saws": 7,
 				"knowledgeC": 7,
 			},
 			"libraries": {
 				"wood": 1000,
 				"books": 120,
+			},
+			"wartents": {
+				"leather": 125,
+				"wood": 10,
+				"knowledgeC": 500,
+				"swords": 3,
+				"axes": 5,
+				"money": 100,
+			},
+			"foragerhuts": {
+				"leather": 125,
+				"food": 750,
+				"knowledgeC": 5,
 			},
 		};
 		document.rewards = {
@@ -175,6 +224,10 @@
 			"lumbermills": {
 				"wood": 7,
 			},
+			"foragerhuts": {
+				"food": 9,
+				"leather": 8,
+			},
 		};
 		function craft(compound)
 		{
@@ -187,7 +240,7 @@
 			}
 			for (kind in reqs)
 			{
-				var amt = reqs[kind];
+				var amt = reqs[kind] * many_things;
 				if (document.amounts[kind] < amt)
 				{
 					pass = false;
@@ -196,10 +249,10 @@
 			}
 			if (pass)
 			{
-				document.amounts[compound] += 1;
+				document.amounts[compound] += many_things;
 				for (kind in reqs)
 				{
-					var amt = reqs[kind];
+					var amt = reqs[kind] * many_things;
 					document.amounts[kind] -= amt;
 				}
 				var rewards = document.rewards[compound];
@@ -207,7 +260,7 @@
 				{
 					for (kind in rewards)
 					{
-						var amt = rewards[kind];
+						var amt = rewards[kind] * many_things;
 						document.amounts[kind] += amt;
 					}
 				}
@@ -219,7 +272,7 @@
 						var rate_base = document.base_rates[material];
 						var rate_bonus = bonuses[material];
 						var quantity = document.amounts[compound];
-						document.total_rates[material] = rate_base + (quantity * rate_bonus);
+						document.total_rates[material] = rate_base + (quantity * rate_bonus * many_things);
 						console.log(material);
 						console.log("new rate for " + material + ": " + document.total_rates[material]);
 					}
@@ -250,6 +303,7 @@
 		document.base_rates["wood"] = 50;
 		document.base_rates["stone"] = 20;
 		document.base_rates["metal"] = 10;
+		document.base_rates["leather"] = 75;
 		for (kind of document.materials)
 		{
 			var rate = document.base_rates[kind];
@@ -283,6 +337,9 @@
 			</div>
 			<div class="materials" id="foodBlock">
 				Food: <span id="food"></span>
+				<div class="materials" id="leatherBlock">
+					leather: <span id="leather"></span>
+				</div>
 				<div class="materials" id="gemsBlock">
 					Gems: <span id="gems"></span>
 			</div>
@@ -303,6 +360,9 @@
 			<div class="compounds" id="axesBlock">
 				axes: <span id="axes"></span>
 			</div>
+			<div class="compounds" id="swordsBlock">
+				swords: <span id="swords"></span>
+			</div>
 			<div class="compounds" id="sawsBlock">
 				saws: <span id="saws"></span>
 			</div>
@@ -318,37 +378,51 @@
 			<div class="compounds" id="lumbermillsBlock">
 				lumbermills: <span id="lumbermills"></span>
 			</div>
+			<div class="compounds" id="foragerhutsBlock">
+				foragerhuts: <span id="foragerhuts"></span>
+			</div>
+			<div class="compounds" id="wartentsBlock">
+				wartents: <span id="wartents"></span>
+			</div>
 			<div class="compounds" id="librariesBlock">
 				libraries: <span id="libraries"></span>
 			</div>
 		</div>
 		<hr>
+		<input id="manyThings" onChange="setManyThings();" value="1"/>
 		<div id="meterialButtons">
 		<button onClick="addWorker('metal');" id="metalWorker">add metal worker</button>
 		<button onClick="addWorker('stone');" id="stoneWorker">add stone worker</button>
 		<button onClick="addWorker('wood');"  id="woodWorker" >add wood worker</button>
 		<button onClick="addWorker('food');"  id="foodWorker" >add food worker</button>
+		<button onClick="addWorker('leather');"  id="leatherWorker" >add leather worker</button>
 		<br>
 		<button onClick="subWorker('metal');" id="sMetalWorker">sub metal worker</button>
 		<button onClick="subWorker('stone');" id="sStoneWorker">sub stone worker</button>
 		<button onClick="subWorker('wood');"  id="sWoodWorker" >sub wood worker</button>
 		<button onClick="subWorker('food');"  id="sFoodWorker" >sub food worker</button>
+		<button onClick="subWorker('leather');"  id="sleatherWorker" >sub leather worker</button>
 		</div>
 		<div id="craftButtons">
 		<button onClick="craft('mugs');">craft mug</button>
 		<button onClick="craft('pickaxes');">craft pickaxe</button>
 		<button onClick="craft('barrels');">craft barrel</button>
 		<button onClick="craft('axes');">craft axe</button>
+		<button onClick="craft('swords');">craft sword</button>
 		<button onClick="craft('saws');">craft saw</button>
 		<button onClick="craft('books');">craft book</button>
 		<button onClick="craft('inns');">craft inn</button>
 		<button onClick="craft('mines');">craft mine</button>
-		<button onClick="craft('libraries');">craft library</button>
 		<button onClick="craft('lumbermills');">craft lumbermill</button>
+		<button onClick="craft('foragerhuts');">craft forager hut</button>
+		<button onClick="craft('wartents');">craft war tent</button>
+		<button onClick="craft('libraries');">craft library</button>
 		</div>
 
 		<br>
 		<button onClick="stop();" id="stopButton">STOP!</button>
+		<button onClick="save();" id="saveButton">save</button>
+		<button onClick="load();" id="loadButton">load</button>
 	</body>
 	<script>showMaterials();</script>
 </html>
