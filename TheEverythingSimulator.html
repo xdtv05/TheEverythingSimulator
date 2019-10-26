@@ -125,7 +125,7 @@
 			}
 		}
 		document.materials = [ "money", "stone", "wood", "metal", "food" , "leather", "gems" ];
-		document.compounds = [ "mugs" , "pickaxes" , "books" , "barrels" , "axes" , "swords" , "saws" , "knowledgeC" , "inns", "mines" , "libraries" , "lumbermills", "wartents", "foragerhuts" ];
+		document.compounds = [ "mugs" , "pickaxes" , "books" , "barrels" , "axes" , "swords" , "saws" , "shears" , "knowledgeC" , "inns", "mines" , "libraries" , "lumbermills", "wartents", "foragerhuts" ];
 		document.requirements = {
 			"pickaxes": {
 				"metal": 10,
@@ -151,13 +151,21 @@
 				"metal": 20,
 				"wood": 5,
 			},
+			"shears": {
+				"metal": 7,
+				"leather": 2,
+			},
 			"books": {
 				"leather": 2,
 				"knowledgeC": 1,
 			},
 			"inns": {
-				"stone": 500,
-				"wood": 1000,
+				"stone": function() { return 500 * Math.pow(1.02 , document.amounts["inns"]); },
+				"wood": function() {
+					var mugs = Math.pow(1.02 , document.amounts["mugs"]);
+					console.log("mugs "+mugs);
+					return 1000 * Math.pow(1.02 , document.amounts["mugs"]);
+				},
 				"mugs": 5,
 				"barrels": 20,
 				"food": 1750,
@@ -190,6 +198,7 @@
 			"foragerhuts": {
 				"leather": 125,
 				"food": 750,
+				"shears": 2,
 				"knowledgeC": 5,
 			},
 		};
@@ -209,6 +218,9 @@
 			"axes": {
 				"knowledgeC": 2,
 			},
+			"swords": {
+				"knowledgeC": 1
+			},
 			"saws": {
 				"knowledgeC": 3,
 			},
@@ -222,13 +234,27 @@
 				"metal": 1,
 			},
 			"lumbermills": {
-				"wood": 7,
+				"wood": 15,
 			},
 			"foragerhuts": {
 				"food": 9,
 				"leather": 8,
 			},
 		};
+		function cost(thing, reqs)
+		{
+			var req = reqs[kind];
+			var amt = 0;
+			if (typeof(req) == "number")
+			{
+				amt = req;
+			}
+			else
+			{
+				amt = req();
+			}
+			return Math.ceil(amt * many_things);
+		}
 		function craft(compound)
 		{
 			var pass = true;
@@ -240,7 +266,8 @@
 			}
 			for (kind in reqs)
 			{
-				var amt = reqs[kind] * many_things;
+				var req = reqs[kind];
+				var amt = cost(kind, reqs);
 				if (document.amounts[kind] < amt)
 				{
 					pass = false;
@@ -252,7 +279,7 @@
 				document.amounts[compound] += many_things;
 				for (kind in reqs)
 				{
-					var amt = reqs[kind] * many_things;
+					var amt = cost(kind, reqs);
 					document.amounts[kind] -= amt;
 				}
 				var rewards = document.rewards[compound];
@@ -366,6 +393,9 @@
 			<div class="compounds" id="sawsBlock">
 				saws: <span id="saws"></span>
 			</div>
+			<div class="compounds" id="shearsBlock">
+				shears: <span id="shears"></span>
+			</div>
 			<div class="compounds" id="innsBlock">
 				inns: <span id="inns"></span>
 			</div>
@@ -410,6 +440,7 @@
 		<button onClick="craft('axes');">craft axe</button>
 		<button onClick="craft('swords');">craft sword</button>
 		<button onClick="craft('saws');">craft saw</button>
+		<button onClick="craft('shears');">craft shear</button>
 		<button onClick="craft('books');">craft book</button>
 		<button onClick="craft('inns');">craft inn</button>
 		<button onClick="craft('mines');">craft mine</button>
