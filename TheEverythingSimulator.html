@@ -15,18 +15,21 @@
 			var state = {};
 			state.amounts = document.amounts;
 			state.workers = document.workers;
+			state.saleSlots = document.saleSlots;
 			state.total_workers = document.total_workers;
 			var saveGame = JSON.stringify(state);
 			localStorage.setItem("saveGame", saveGame);
 		}
 		function load()
 		{
+			// load needs to zero out all materials and compounds before loading in case there are new materials
 			var saveGame = localStorage.getItem("saveGame");
 			var state = JSON.parse(saveGame);
 			if (state !== null)
 			{
 				document.amounts = state.amounts;
 				document.workers = state.workers;
+				document.saleSlots = state.saleSlots;
 				document.total_workers = state.total_workers;
 			}
 		}
@@ -58,8 +61,10 @@
 		}
 		function showMaterials()
 		{
-			var c = document.getElementById("crafting").style.display = "none";
 			document.getElementById("meterialButtons").style.display = "block";
+			document.getElementById("craftButtons").style.display = "none";
+			document.getElementById("crafting").style.display = "none";
+			document.getElementById("trading").style.display = "none";
 			var show = [ "money", "gems", "workers" ];
 			for (kind of show)
 			{
@@ -69,16 +74,32 @@
 		function showCrafting()
 		{
 			document.getElementById("meterialButtons").style.display = "none";
+			document.getElementById("craftButtons").style.display = "block";
 			document.getElementById("crafting").style.display = "block";
+			document.getElementById("trading").style.display = "none";
 			var show = [ "money", "gems", "workers" ];
 			for (kind of show)
 			{
 				document.getElementById(kind+"Block").style.display = "none";
 			}
 		}
+		function showTrading()
+		{
+			document.getElementById("meterialButtons").style.display = "none";
+			document.getElementById("craftButtons").style.display = "none";
+			document.getElementById("crafting").style.display = "none";
+			document.getElementById("trading").style.display = "block";
+			var show = [ "money", "gems", "workers" ];
+			for (kind of show)
+			{
+				document.getElementById(kind+"Block").style.display = "none";
+			}
+			document.getElementById("moneyBlock").style.display = "block";
+		}
 		function tick()
 		{
 			incrementMaterials();
+			sellObject();
 			updateDisplay();
 		}
 		function incrementMaterials()
@@ -160,46 +181,42 @@
 				"knowledgeC": 1,
 			},
 			"inns": {
-				"stone": function() { return 500 * Math.pow(1.02 , document.amounts["inns"]); },
-				"wood": function() {
-					var mugs = Math.pow(1.02 , document.amounts["mugs"]);
-					console.log("mugs "+mugs);
-					return 1000 * Math.pow(1.02 , document.amounts["mugs"]);
-				},
-				"mugs": 5,
-				"barrels": 20,
-				"food": 1750,
-				"knowledgeC": 70,
+				"stone": function() { return 500 * Math.pow(1.02, document.amounts["inns"]); },
+				"wood": function() { return 1000 * Math.pow(1.02, document.amounts["inns"]); },
+				"mugs": function() { return 5 * Math.pow(1.01, document.amounts["inns"]); },
+				"barrels": function() { return 20 * Math.pow(1.01, document.amounts["inns"]); },
+				"food": function() { return 1750 * Math.pow(1.02, document.amounts["inns"]); },
+				"knowledgeC": function() { return 70 * Math.pow(1.001, document.amounts["inns"]); },
 			},
 			"mines": {
-				"stone": 245,
-				"wood": 125,
-				"pickaxes": 3,
-				"knowledgeC": 7,
+				"stone": function() { return 250 * Math.pow(1.02, document.amounts["mines"]); },
+				"wood": function() { return 125 * Math.pow(1.02, document.amounts["mines"]); },
+				"pickaxes": function() { return 3 * Math.pow(1.01, document.amounts["mines"]); },
+				"knowledgeC": function() { return 7 * Math.pow(1.001, document.amounts["mines"]); },
 			},
 			"lumbermills": {
-				"wood": 700,
-				"axes": 10,
-				"saws": 7,
-				"knowledgeC": 7,
+				"wood": function() { return 700 * Math.pow(1.02, document.amounts["lumbermills"]); },
+				"axes": function() { return 10* Math.pow(1.01, document.amounts["lumbermills"]); },
+				"saws": function() { return 7* Math.pow(1.01, document.amounts["lumbermills"]); },
+				"knowledgeC": function() { return 7* Math.pow(1.001, document.amounts["lumbermills"]); },
 			},
 			"libraries": {
 				"wood": 1000,
 				"books": 120,
 			},
 			"wartents": {
-				"leather": 125,
-				"wood": 10,
-				"knowledgeC": 500,
-				"swords": 3,
-				"axes": 5,
-				"money": 100,
+				"leather": function() { return 125* Math.pow(10, document.amounts["wartents"]); },
+				"wood": function() { return 10* Math.pow(10, document.amounts["wartents"]); },
+				"knowledgeC": function() { return 300* Math.pow(9.9, document.amounts["wartents"]); },
+				"swords": function() { return 3* Math.pow(10, document.amounts["wartents"]); },
+				"axes": function() { return 5* Math.pow(10, document.amounts["wartents"]); },
+				"money": function() { return 100* Math.pow(10.5, document.amounts["wartents"]); },
 			},
 			"foragerhuts": {
-				"leather": 125,
-				"food": 750,
-				"shears": 2,
-				"knowledgeC": 5,
+				"leather": function() { return 500* Math.pow(1.02, document.amounts["foragerhuts"]); },
+				"food": function() { return 750* Math.pow(1.02, document.amounts["foragerhuts"]); },
+				"shears": function() { return 2* Math.pow(1.01, document.amounts["foragerhuts"]); },
+				"knowledgeC": function() { return 5* Math.pow(1.001, document.amounts["foragerhuts"]); },
 			},
 		};
 		document.rewards = {
@@ -241,6 +258,20 @@
 				"leather": 8,
 			},
 		};
+		document.base_price = {
+			"metal" : 5,
+			"stone" : 4,
+			"wood" : 2,
+			"food" : 3,
+			"lether" : 2,
+			"pickaxes" : 75,
+			"mugs" : 40,
+			"saws" : 120,
+			"shears" : 45,
+			"axes" : 65,
+			"swords" : 80,
+			"books" : 15,
+		};
 		function cost(thing, reqs)
 		{
 			var req = reqs[kind];
@@ -258,6 +289,7 @@
 		function craft(compound)
 		{
 			var pass = true;
+			var msg = "";
 			var reqs = document.requirements[compound];
 			if (reqs === undefined)
 			{
@@ -271,7 +303,7 @@
 				if (document.amounts[kind] < amt)
 				{
 					pass = false;
-					alert("not enough " + kind + ": have " + document.amounts[kind] + " need " + amt);
+					msg += ("not enough " + kind + ": have " + document.amounts[kind] + " need " + amt + "\n");
 				}
 			}
 			if (pass)
@@ -305,38 +337,119 @@
 					}
 				}
 			}
+			else // pass
+			{
+				alert(msg);
+			}
 			updateDisplay();
 		}
-		document.base_rates = {};
-		document.total_rates = {};
-		document.amounts = {};
-		document.workers = {};
-		document.total_workers = 5;
-		document.amounts["freeWorkers"] = 1;
+		function now()
+		{
+			return ((new Date()).getTime() / 1000);
+		}
+		function trading()
+		{
+			var thingSelection = document.getElementById("saleThingSelection");
+			var quantityEntry = document.getElementById("quantityEntry");
+			var thing = thingSelection.value;
+			var x = quantityEntry.value;
+			// need to check to see if we actually have that many before we can sell them.
+			// we can't sell 3 pickaxes if we have zero.
+			for (i = 0; i < 3; i++)
+			{
+				if (document.saleSlots[i].state == "empty")
+				{
+					if (1 <= x && x <= 100)
+					{
+						var price = Math.floor((document.base_price [thing]) * (Math.random() + 0.5));
+						document.saleSlots[i].name = thing;
+						document.saleSlots[i].quantity = x;
+						document.saleSlots[i].salePrice = price*x;
+						document.saleSlots[i].saleTime = now() + price;
+						document.saleSlots[i].state = "forSale";
+						document.amounts[thing] -= x;
+						break;
+					}
+					else
+					{
+						alert("must be be betwen 1 & 100");
+					}
+				}
+			}
+		}
+		// need difference between base and for sales prices
+		// need timer
 
-		for (kind of document.materials)
+		function sellObject()
 		{
-			document.amounts[kind] = 0;
-			document.base_rates[kind] = 0;
-			document.total_rates[kind] = 0;
-			document.workers[kind] = 1;
+			for (i = 0; i < 3; i++)
+			{
+				var name = document.saleSlots[i].name;
+				var amount = document.saleSlots[i].salePrice;
+				var state = document.saleSlots[i].state;
+				var time = document.saleSlots[i].saleTime;
+//				console.log(""+i+": "+name+" "+amount+" "+state+" "+time);
+				if (document.saleSlots[i].state == "forSale")
+				{
+					if (document.saleSlots[i].saleTime <= now())
+					{
+						document.amounts["money"] += document.saleSlots[i].salePrice;
+						document.saleSlots[i].name = "";
+						document.saleSlots[i].quantity = 0;
+						document.saleSlots[i].salePrice = 0;
+						document.saleSlots[i].state = "sold";
+//						console.log("sold "+name+" for "+amount);
+					}
+				}
+			}
+		// have four trading slots
+		// typical item on sale for 30 seconds
+		// sale item has name, price, quantity, probability
 		}
-		for (kind of document.compounds)
+		function init()
 		{
-			document.amounts[kind] = 0;
+			document.base_rates = {};
+			document.total_rates = {};
+			document.amounts = {};
+			document.workers = {};
+			document.saleSlots = [];
+			document.total_workers = 5;
+			document.amounts["freeWorkers"] = 1;
+
+			for (kind of document.materials)
+			{
+				document.amounts[kind] = 0;
+				document.base_rates[kind] = 0;
+				document.total_rates[kind] = 0;
+				document.workers[kind] = 1;
+			}
+			for (kind of document.compounds)
+			{
+				document.amounts[kind] = 0;
+			}
+//			document.base_rates["money"] = 1;
+			document.base_rates["food"] = 100;
+			document.base_rates["wood"] = 50;
+			document.base_rates["stone"] = 20;
+			document.base_rates["metal"] = 10;
+			document.base_rates["leather"] = 75;
+			var saleThingSelection = document.getElementById("saleThingSelection");
+			for (kind of document.materials)
+			{
+				var rate = document.base_rates[kind];
+				document.total_rates[kind] = rate;
+				saleThingSelection.innerHTML += "<option value='" + kind + "'>" + kind + "</option>";
+			}
+			for (kind of document.compounds)
+			{
+				saleThingSelection.innerHTML += "<option value='" + kind + "'>" + kind + "</option>";
+			}
+			var emptySaleSlot = {"name":"", "quantity":0, "salePrice":0, "saleTime":0, "state":"empty"};
+			for (i = 0; i < 3; i++)
+			{
+				document.saleSlots[i] = emptySaleSlot;
+			}
 		}
-//		document.base_rates["money"] = 1;
-		document.base_rates["food"] = 100;
-		document.base_rates["wood"] = 50;
-		document.base_rates["stone"] = 20;
-		document.base_rates["metal"] = 10;
-		document.base_rates["leather"] = 75;
-		for (kind of document.materials)
-		{
-			var rate = document.base_rates[kind];
-			document.total_rates[kind] = rate;
-		}
-		//showMaterials();
 		</script>
 		<style>
 			body { font-size: 85%; }
@@ -347,6 +460,9 @@
 		<div id="tabs">
 			<button onClick="showMaterials();">Materials</button>
 			<button onClick="showCrafting();">Crafting</button>
+			<button onClick="showTrading();">Trading</button>
+			<button onClick="showCrystalize();">Crystalize</button>
+			<button onClick="showMagic();">Magic</button>
 		</div>
 
 		<div>
@@ -418,6 +534,13 @@
 				libraries: <span id="libraries"></span>
 			</div>
 		</div>
+		<div id="trading">
+			trading
+ 			<input type="number" min="1" max="100" placeholder="quantity" id="quantityEntry"></input>
+			<select id="saleThingSelection"></select>
+			<button onClick="trading();" id="somethingTradeButton">trade something</button>
+			<button onClick="autoTrading();" id="autoTradeButton">auto trade</button>
+		</div>
 		<hr>
 		<input id="manyThings" onChange="setManyThings();" value="1"/>
 		<div id="meterialButtons">
@@ -455,5 +578,5 @@
 		<button onClick="save();" id="saveButton">save</button>
 		<button onClick="load();" id="loadButton">load</button>
 	</body>
-	<script>showMaterials();</script>
+	<script>init();showMaterials();</script>
 </html>
