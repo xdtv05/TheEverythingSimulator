@@ -298,7 +298,6 @@
 			}
 			for (kind in reqs)
 			{
-				var req = reqs[kind];
 				var amt = cost(kind, reqs);
 				if (document.amounts[kind] < amt)
 				{
@@ -308,12 +307,12 @@
 			}
 			if (pass)
 			{
-				document.amounts[compound] += many_things;
 				for (kind in reqs)
 				{
 					var amt = cost(kind, reqs);
 					document.amounts[kind] -= amt;
 				}
+				document.amounts[compound] += many_things;				
 				var rewards = document.rewards[compound];
 				if (rewards !== undefined)
 				{
@@ -355,6 +354,11 @@
 			var x = quantityEntry.value;
 			// need to check to see if we actually have that many before we can sell them.
 			// we can't sell 3 pickaxes if we have zero.
+			if (document.amounts[thing] < x)
+			{
+				alert("you don't have at least " + x + " " + thing);
+				return;
+			}
 			for (i = 0; i < 3; i++)
 			{
 				if (document.saleSlots[i].state == "empty")
@@ -397,7 +401,7 @@
 						document.saleSlots[i].name = "";
 						document.saleSlots[i].quantity = 0;
 						document.saleSlots[i].salePrice = 0;
-						document.saleSlots[i].state = "sold";
+						document.saleSlots[i].state = "empty";
 //						console.log("sold "+name+" for "+amount);
 					}
 				}
