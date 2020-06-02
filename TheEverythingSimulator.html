@@ -33,6 +33,17 @@
 				document.total_workers = state.total_workers;
 			}
 		}
+		function addTroops(kind)
+		{
+//			console.log(document.amounts["trainee"])
+			if (document.amounts["trainee"] >= many_things)
+			{
+				document.amounts[kind] += many_things;
+				document.amounts["trainee"] -= many_things;
+			}
+			drawSoldier(kind);
+				
+		}
 		function addWorker(kind)
 		{
 			if (document.amounts["freeWorkers"] >= many_things)
@@ -59,42 +70,50 @@
 				console.log("many things: " + num);
 			}
 		}
+		function show(newTab)
+		{
+			for (tab of document.tabs)
+			{
+				document.getElementById(tab).style.display = "none";
+				document.getElementById(tab+"Buttons").style.display = "none";
+			}
+			document.getElementById(newTab).style.display = "block";
+			document.getElementById(newTab+"Buttons").style.display = "block";
+
+			var items = [ "money", "gems", "workers" ];
+			for (kind of items)
+			{
+				document.getElementById(kind+"Block").style.display = "none";
+			}
+		}
 		function showMaterials()
 		{
-			document.getElementById("meterialButtons").style.display = "block";
-			document.getElementById("craftButtons").style.display = "none";
-			document.getElementById("crafting").style.display = "none";
-			document.getElementById("trading").style.display = "none";
-			var show = [ "money", "gems", "workers" ];
-			for (kind of show)
+			show("materials");
+			var items = [ "money", "gems", "workers" ];
+			for (kind of items)
 			{
 				document.getElementById(kind+"Block").style.display = "block";
 			}
 		}
 		function showCrafting()
 		{
-			document.getElementById("meterialButtons").style.display = "none";
-			document.getElementById("craftButtons").style.display = "block";
-			document.getElementById("crafting").style.display = "block";
-			document.getElementById("trading").style.display = "none";
-			var show = [ "money", "gems", "workers" ];
-			for (kind of show)
-			{
-				document.getElementById(kind+"Block").style.display = "none";
-			}
+			show("crafting");
 		}
 		function showTrading()
 		{
-			document.getElementById("meterialButtons").style.display = "none";
-			document.getElementById("craftButtons").style.display = "none";
-			document.getElementById("crafting").style.display = "none";
-			document.getElementById("trading").style.display = "block";
-			var show = [ "money", "gems", "workers" ];
-			for (kind of show)
-			{
-				document.getElementById(kind+"Block").style.display = "none";
-			}
-			document.getElementById("moneyBlock").style.display = "block";
+			show("trading");
+		}
+		function showWar()
+		{
+			show("war");
+		}
+		function showMagic()
+		{
+			show("magic");
+		}
+		function showUpgrades()
+		{
+			show("upgrades");
 		}
 		function tick()
 		{
@@ -130,8 +149,37 @@
 			{
 				updateItem(kind);
 			}
+			for (kind of document.soldiers)
+			{
+				updateItem(kind);
+			}
 			var label = document.getElementById("workers");
 			label.innerHTML = document.amounts["freeWorkers"];
+		}
+		function numberFormat(amt)
+		{
+			if (amt == 0)
+			{
+				return "0";
+			}
+			if (document.format == "log")
+			{
+				return numberFormatLog(amt)
+			}
+			return numberFormatSci(amt)
+		}
+		function numberFormatSci(amt)
+		{
+			var exponent = Math.floor(Math.log10(amt));
+			var pow = Math.pow(10, exponent);
+			var mantissa = amt/pow;
+			return String(mantissa).substring(0, 5) + "x10e" + exponent;
+
+		}
+		function numberFormatLog(amt)
+		{
+			var value = Math.log(amt)
+			return String(value).substring(0, 10)
 		}
 		function updateItem(kind)
 		{
@@ -141,12 +189,14 @@
 				var label = document.getElementById(kind);
 				if (label !== null)
 				{
-					label.innerHTML = amt;
+					label.innerHTML = numberFormat(amt);
 				}
 			}
 		}
+		document.soldiers = [ "trainee", "infantry", "cavalry", "shocktroops", "mages" ];
 		document.materials = [ "money", "stone", "wood", "metal", "food" , "leather", "gems" ];
-		document.compounds = [ "mugs" , "pickaxes" , "books" , "barrels" , "axes" , "swords" , "saws" , "shears" , "knowledgeC" , "inns", "mines" , "libraries" , "lumbermills", "wartents", "foragerhuts" ];
+		document.compounds = [ "mugs" , "pickaxes" , "books" , "barrels" , "axes" , "swords" , "saws" , "shears" , "knowledgeC" , "inns", "mines" , "libraries" , "lumbermills", "barracks", "foragerhuts" ];
+		document.all_upgrades = [ "sewing", "weaving", "stringMaking" ];
 		document.requirements = {
 			"pickaxes": {
 				"metal": 10,
@@ -204,13 +254,13 @@
 				"wood": 1000,
 				"books": 120,
 			},
-			"wartents": {
-				"leather": function() { return 125* Math.pow(10, document.amounts["wartents"]); },
-				"wood": function() { return 10* Math.pow(10, document.amounts["wartents"]); },
-				"knowledgeC": function() { return 300* Math.pow(9.9, document.amounts["wartents"]); },
-				"swords": function() { return 3* Math.pow(10, document.amounts["wartents"]); },
-				"axes": function() { return 5* Math.pow(10, document.amounts["wartents"]); },
-				"money": function() { return 100* Math.pow(10.5, document.amounts["wartents"]); },
+			"barracks": {
+				"leather": function() { return 125* Math.pow(10, document.amounts["barracks"]); },
+				"wood": function() { return 10* Math.pow(10, document.amounts["barracks"]); },
+				"knowledgeC": function() { return 300* Math.pow(9.9, document.amounts["barracks"]); },
+				"swords": function() { return 3* Math.pow(10, document.amounts["barracks"]); },
+				"axes": function() { return 5* Math.pow(10, document.amounts["barracks"]); },
+				"money": function() { return 100* Math.pow(10.5, document.amounts["barracks"]); },
 			},
 			"foragerhuts": {
 				"leather": function() { return 500* Math.pow(1.02, document.amounts["foragerhuts"]); },
@@ -244,6 +294,9 @@
 			"libraries": {
 				"knowledgeC": 250,
 			},
+			"barracks": {
+				"trainee" : 5,
+			},
 		};
 		document.bonus_rates = {
 			"mines": {
@@ -271,6 +324,11 @@
 			"axes" : 65,
 			"swords" : 80,
 			"books" : 15,
+		};
+		document.upgrades = {
+			"stringmaking" : {},
+			"sewing" : {},
+			"weaving" : {}
 		};
 		function cost(thing, reqs)
 		{
@@ -363,21 +421,14 @@
 			{
 				if (document.saleSlots[i].state == "empty")
 				{
-					if (1 <= x && x <= 100)
-					{
-						var price = Math.floor((document.base_price [thing]) * (Math.random() + 0.5));
-						document.saleSlots[i].name = thing;
-						document.saleSlots[i].quantity = x;
-						document.saleSlots[i].salePrice = price*x;
-						document.saleSlots[i].saleTime = now() + price;
-						document.saleSlots[i].state = "forSale";
-						document.amounts[thing] -= x;
-						break;
-					}
-					else
-					{
-						alert("must be be betwen 1 & 100");
-					}
+					var price = Math.floor((document.base_price [thing]) * (Math.random() + 0.5));
+					document.saleSlots[i].name = thing;
+					document.saleSlots[i].quantity = x;
+					document.saleSlots[i].salePrice = price*x;
+					document.saleSlots[i].saleTime = now() + Math.sqrt(price);
+					document.saleSlots[i].state = "forSale";
+					document.amounts[thing] -= x;
+					break;
 				}
 			}
 		}
@@ -410,8 +461,22 @@
 		// typical item on sale for 30 seconds
 		// sale item has name, price, quantity, probability
 		}
-		function init()
+		function upgradeTree(upgrade)
 		{
+			if (document.upgradesAcquired [upgrade] != true)
+			{
+				document.upgradesAcquired [upgrade] = true;
+				console.log (upgrade+" acquired");
+			}
+		}
+		function Crystalize()
+		{
+			document.amounts["Gems"]  += tallyGems();
+			remake();
+		}
+		function remake()
+		{
+			var multiplier = 1 + (document.amounts.Gems / 100);
 			document.base_rates = {};
 			document.total_rates = {};
 			document.amounts = {};
@@ -419,7 +484,12 @@
 			document.saleSlots = [];
 			document.total_workers = 5;
 			document.amounts["freeWorkers"] = 1;
-
+			document.upgradesAcquired = {};
+			document.base_rates["food"] = 100 * multiplier;
+			document.base_rates["wood"] = 50 * multiplier;
+			document.base_rates["stone"] = 20 * multiplier;
+			document.base_rates["metal"] = 10 * multiplier;
+			document.base_rates["leather"] = 75 * multiplier;
 			for (kind of document.materials)
 			{
 				document.amounts[kind] = 0;
@@ -431,12 +501,10 @@
 			{
 				document.amounts[kind] = 0;
 			}
-//			document.base_rates["money"] = 1;
-			document.base_rates["food"] = 100;
-			document.base_rates["wood"] = 50;
-			document.base_rates["stone"] = 20;
-			document.base_rates["metal"] = 10;
-			document.base_rates["leather"] = 75;
+			for (kind of document.soldiers)
+			{
+				document.amounts[kind] = 0;
+			}
 			var saleThingSelection = document.getElementById("saleThingSelection");
 			for (kind of document.materials)
 			{
@@ -453,6 +521,39 @@
 			{
 				document.saleSlots[i] = emptySaleSlot;
 			}
+			var untitledUnit = {"name":"", "attack":0, "defence":0, "health":0, "speed":0, "range":0};
+			for (i = 0; i < 4; i++)
+			{
+			}
+			for (upgrade of document.all_upgrades)
+			{
+				document.upgradesAcquired[upgrade] = false;
+			}
+		}
+		function tallyGems()
+		{
+			var total = 0;
+			for (kind of document.materials)
+			{
+				var count = document.amounts[kind];
+				total += Math.floor(Math.log(count));
+			}
+			return total;
+		}
+		function init()
+		{
+			remake();
+			document.tabs = [ "materials", "crafting", "trading", "war", "upgrades", "magic" ];
+//			document.base_rates["money"] = 1;
+		}
+		function drawSoldier(kind)
+		{
+			var canvas = document.getElementById("map");
+			var context = canvas.getContext("2d");
+			context.beginPath();
+			context.arc(200, 300, 2, 0, Math.PI*2,true);
+			context.fillStyle = "maroon"
+			context.fill();
 		}
 		</script>
 		<style>
@@ -465,10 +566,10 @@
 			<button onClick="showMaterials();">Materials</button>
 			<button onClick="showCrafting();">Crafting</button>
 			<button onClick="showTrading();">Trading</button>
-			<button onClick="showCrystalize();">Crystalize</button>
+			<button onClick="showWar();">War</button>
+			<button onClick="showUpgrades();">Upgrades</button>
 			<button onClick="showMagic();">Magic</button>
 		</div>
-
 		<div>
 			<div class="materials" id="moneyBlock">
 				Money: <span id="money"></span>
@@ -484,11 +585,12 @@
 			</div>
 			<div class="materials" id="foodBlock">
 				Food: <span id="food"></span>
-				<div class="materials" id="leatherBlock">
-					leather: <span id="leather"></span>
-				</div>
-				<div class="materials" id="gemsBlock">
-					Gems: <span id="gems"></span>
+			</div>
+			<div class="materials" id="leatherBlock">
+				leather: <span id="leather"></span>
+			</div>
+			<div class="materials" id="gemsBlock">
+				Gems: <span id="gems"></span>
 			</div>
 			<div class="materials" id="workersBlock">
 				Workers: <span id="workers"></span>
@@ -531,23 +633,55 @@
 			<div class="compounds" id="foragerhutsBlock">
 				foragerhuts: <span id="foragerhuts"></span>
 			</div>
-			<div class="compounds" id="wartentsBlock">
-				wartents: <span id="wartents"></span>
+			<div class="compounds" id="barracksBlock">
+				barracks: <span id="barracks"></span>
 			</div>
 			<div class="compounds" id="librariesBlock">
 				libraries: <span id="libraries"></span>
 			</div>
 		</div>
+		<div id="materials">
+		</div>
 		<div id="trading">
 			trading
- 			<input type="number" min="1" max="100" placeholder="quantity" id="quantityEntry"></input>
-			<select id="saleThingSelection"></select>
-			<button onClick="trading();" id="somethingTradeButton">trade something</button>
-			<button onClick="autoTrading();" id="autoTradeButton">auto trade</button>
+		</div>
+		<div id="war">
+			war
+			<canvas width="400" height="400" id="map" style="border:3px solid #000000;">
+			</canvas>
+			<div class="soldiers" id="infantryBlock">
+				Infantry: <span id="infantry"></span>
+			</div>
+			<div class="soldiers" id="cavalryBlock">
+				Cavalry: <span id="cavalry"></span>
+			</div>
+			<div class="soldiers" id="shocktroopsBlock">
+				Shocktroops: <span id="shocktroops"></span>
+			</div>
+			<div class="soldiers" id="magesBlock">
+				Mages: <span id="mages"></span>
+			</div>
+			<div class="heroes" id="heroesBlock">
+				Heroes: <span id="heroes">1</span>
+			</div>
+		</div>
+		<div id="magic">
+			magic
+		</div>
+		<div id="upgrades">
+			<button onClick="upgradeTree('sewing');" id="upgradeSewing">sewing</button>
+			<button onClick="upgradeTree('weaving');" id="upgradeWeaving">weaving</button>
+			<button onClick="upgradeTree('stringMaking');" id="upgradeStringMaking">string</button>
 		</div>
 		<hr>
-		<input id="manyThings" onChange="setManyThings();" value="1"/>
-		<div id="meterialButtons">
+		How many things: <input id="manyThings" onChange="setManyThings();" value="1"/>
+		<div id="warButtons">
+		<button onClick="addTroops('infantry');" id="infantry">add infantry</button>
+		<button onClick="addTroops('cavalry');" id="cavalry">add cavalry</button>
+		<button onClick="addTroops('shocktroops');" id="shocktroops">add shocktroops</button>
+		<button onClick="addTroops('mages');" id="mages">add mages</button>
+		</div>
+		<div id="materialsButtons">
 		<button onClick="addWorker('metal');" id="metalWorker">add metal worker</button>
 		<button onClick="addWorker('stone');" id="stoneWorker">add stone worker</button>
 		<button onClick="addWorker('wood');"  id="woodWorker" >add wood worker</button>
@@ -558,9 +692,10 @@
 		<button onClick="subWorker('stone');" id="sStoneWorker">sub stone worker</button>
 		<button onClick="subWorker('wood');"  id="sWoodWorker" >sub wood worker</button>
 		<button onClick="subWorker('food');"  id="sFoodWorker" >sub food worker</button>
-		<button onClick="subWorker('leather');"  id="sleatherWorker" >sub leather worker</button>
+		<button onClick="subWorker('leather');" id="sleatherWorker" >sub leather worker</button>
 		</div>
-		<div id="craftButtons">
+
+		<div id="craftingButtons">
 		<button onClick="craft('mugs');">craft mug</button>
 		<button onClick="craft('pickaxes');">craft pickaxe</button>
 		<button onClick="craft('barrels');">craft barrel</button>
@@ -573,8 +708,22 @@
 		<button onClick="craft('mines');">craft mine</button>
 		<button onClick="craft('lumbermills');">craft lumbermill</button>
 		<button onClick="craft('foragerhuts');">craft forager hut</button>
-		<button onClick="craft('wartents');">craft war tent</button>
+		<button onClick="craft('barracks');">craft barracks</button>
 		<button onClick="craft('libraries');">craft library</button>
+		</div>
+
+		<div id="tradingButtons">
+ 			<input type="number" min="1" max="100" placeholder="quantity" id="quantityEntry"></input>
+			<select id="saleThingSelection"></select>
+			<button onClick="trading();" id="somethingTradeButton">trade something</button>
+			<button onClick="autoTrading();" id="autoTradeButton">auto trade</button>
+		</div>
+
+		<div id="upgradesButtons">
+			<button onClick="showTree" id="showTreeButton">show_tree</button>
+		</div>
+
+		<div id="magicButtons">
 		</div>
 
 		<br>
