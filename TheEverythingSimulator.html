@@ -128,6 +128,7 @@
 				var amt = document.amounts[kind];
 				var add = document.total_rates[kind];
 				var workers = document.workers[kind];
+				//console.log(kind + ": amt=" + amt + " add=" + add + " workers=" + workers);
 				if (add !== undefined)
 				{
 					amt += add * workers * (1/tick_rate);
@@ -471,12 +472,11 @@
 		}
 		function Crystalize()
 		{
-			document.amounts["Gems"]  += tallyGems();
-			remake();
+			var  GEMS = document.amounts["gems"] + tallyGems();
+			remake(GEMS);
 		}
-		function remake()
+		function remake(GEMS)
 		{
-			var multiplier = 1 + (document.amounts.Gems / 100);
 			document.base_rates = {};
 			document.total_rates = {};
 			document.amounts = {};
@@ -485,11 +485,6 @@
 			document.total_workers = 5;
 			document.amounts["freeWorkers"] = 1;
 			document.upgradesAcquired = {};
-			document.base_rates["food"] = 100 * multiplier;
-			document.base_rates["wood"] = 50 * multiplier;
-			document.base_rates["stone"] = 20 * multiplier;
-			document.base_rates["metal"] = 10 * multiplier;
-			document.base_rates["leather"] = 75 * multiplier;
 			for (kind of document.materials)
 			{
 				document.amounts[kind] = 0;
@@ -497,6 +492,13 @@
 				document.total_rates[kind] = 0;
 				document.workers[kind] = 1;
 			}
+			var multiplier = 1 + (GEMS / 100);
+			document.base_rates["food"] = 100 * multiplier;
+			document.base_rates["wood"] = 50 * multiplier;
+			document.base_rates["stone"] = 20 * multiplier;
+			document.base_rates["metal"] = 10 * multiplier;
+			document.base_rates["leather"] = 75 * multiplier;
+			document.amounts["gems"] = GEMS;
 			for (kind of document.compounds)
 			{
 				document.amounts[kind] = 0;
@@ -536,13 +538,16 @@
 			for (kind of document.materials)
 			{
 				var count = document.amounts[kind];
-				total += Math.floor(Math.log(count));
+				if (count)
+				{
+					total += Math.floor(Math.log(count));
+				}
 			}
 			return total;
 		}
 		function init()
 		{
-			remake();
+			remake(0);
 			document.tabs = [ "materials", "crafting", "trading", "war", "upgrades", "magic" ];
 //			document.base_rates["money"] = 1;
 		}
@@ -566,8 +571,8 @@
 			<button onClick="showMaterials();">Materials</button>
 			<button onClick="showCrafting();">Crafting</button>
 			<button onClick="showTrading();">Trading</button>
-			<button onClick="showWar();">War</button>
-			<button onClick="showUpgrades();">Upgrades</button>
+<!--			<button onClick="showWar();">War</button>
+			<button onClick="showUpgrades();">Upgrades</button> -->
 			<button onClick="showMagic();">Magic</button>
 		</div>
 		<div>
@@ -667,6 +672,7 @@
 		</div>
 		<div id="magic">
 			magic
+			<button onClick="Crystalize();" id="CrystalizeButton">crystalize</button>
 		</div>
 		<div id="upgrades">
 			<button onClick="upgradeTree('sewing');" id="upgradeSewing">sewing</button>
